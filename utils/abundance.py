@@ -2,7 +2,7 @@ import sys
 import os
 import random
 
-# taxon profile creation -- creates 5 taxon profiles with variance in abundance scores
+# taxon profile creation -- creates taxon profiles to generate simulated reads in MetaSim
 
 def list_files(path):
     # returns a list of names (with extension, without full path) of all files 
