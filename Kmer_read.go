@@ -27,12 +27,14 @@ func main() {
 
     out := strings.Split(os.Args[2], "/")
     resultRead := make(chan int, 10)
+
+    //count kmer in reads
     go CountFreq(os.Args[2], 7, resultRead)
-    gsmread := make(map[int]int)
+    kmrread := make(map[int]int)
     for res := range resultRead {
-        gsmread[res] = gsmread[res] + 1
+        kmrread[res] = kmrread[res] + 1
     }
-    //fmt.Println(gsmread)
+    //fmt.Println(kmrread)
 
     //begin reading index file
     csvfile, err := os.Open(os.Args[1])
@@ -69,7 +71,7 @@ func main() {
     }
     //finish reading index file
  
-
+    //create output file
     out[len(out)-1] = "read_" + out[len(out)-1] + ".csv"
     output := os.Args[3] + out[len(out)-1]
     fmt.Println(out[len(out)-1])
@@ -89,15 +91,16 @@ func main() {
     }
     rr.Flush()
 
+    //save kmrread to output file
     for k := range index {
         key := index[k]
-        if gsmread[k] != -1 {
+        if kmrread[k] != -1 {
             line := make([]string, 2)
             for i := range line {
                 if i == 0 {
                     line[0] = strconv.Itoa(key)
                 } else if i == 1 {
-                    line[i] = strconv.Itoa(gsmread[key])
+                    line[i] = strconv.Itoa(kmrread[key])
                 } else {
                     line[i] = strconv.Itoa(0)
                 } 
@@ -143,7 +146,7 @@ func CountFreq(readFile string, K int, result chan int) {
       wg.Add(1)
       go func() {
          defer wg.Done()
-         ProcessRead(reads, K, 0, result)
+         ProcessRead(reads, K, result)
       }()
    }
 
@@ -154,24 +157,15 @@ func CountFreq(readFile string, K int, result chan int) {
 }
 
 
-func ProcessRead(reads chan []byte, kmer_len int, distance int, result chan int) {
+func ProcessRead(reads chan []byte, kmer_len int, result chan int) {
     for read := range reads {
         for m := 0; m < len(read) - kmer_len +1; m++ {
-        
             m1 := m
             m2 := m+kmer_len
 
             kmer := make([]byte, kmer_len)
-            
             copy(kmer, read[m1:m2])
-            //fmt.Println(kmer)
-
-            if (distance > 0) {
-                m3 := m+kmer_len+distance
-                m4 := m+2*kmer_len+distance
-            
-                kmer = append(kmer, read[m3:m4]...)
-            }
+                      
             //fmt.Println(kmer)
             repr := 0
             d:
