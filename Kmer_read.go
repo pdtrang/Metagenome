@@ -20,8 +20,10 @@ import (
 
 func main() {
     if len(os.Args) != 4 {
-        panic("must provide sequence folder file, readfile and result file name.")
+        panic("must provide index file, readfile and result file name.")
     }
+
+    start_time := time.Now()
 
     out := strings.Split(os.Args[2], "/")
     resultRead := make(chan int, 10)
@@ -58,14 +60,15 @@ func main() {
     for _, each := range rawCSVdata {
         i, err := strconv.Atoi(each[0])
         if err != nil {
+            // handle error
             fmt.Println(err)
             os.Exit(2)
         }
+        //fmt.Println(i)
         index = append(index, i)
     }
     //finish reading index file
-
-    start_time := time.Now()
+ 
 
     out[len(out)-1] = "read_" + out[len(out)-1] + ".csv"
     output := os.Args[3] + out[len(out)-1]
@@ -161,13 +164,15 @@ func ProcessRead(reads chan []byte, kmer_len int, distance int, result chan int)
             kmer := make([]byte, kmer_len)
             
             copy(kmer, read[m1:m2])
-            
+            //fmt.Println(kmer)
+
             if (distance > 0) {
                 m3 := m+kmer_len+distance
                 m4 := m+2*kmer_len+distance
             
                 kmer = append(kmer, read[m3:m4]...)
             }
+            //fmt.Println(kmer)
             repr := 0
             d:
             for j := 0; j<len(kmer); j++ {
