@@ -1,9 +1,7 @@
-// example how to count k-mer frequencies in a set of reads, using multiple goroutines.
-
 package main
 
 import (
-   "github.com/pdtrang/Metagenome"
+   "github.com/vtphan/kmers"
    "os"
    "bufio"
    "fmt"
@@ -19,7 +17,7 @@ import (
 //os.Args[2]: reads
 //os.Args[3]: output folder
 
-func CountFreq(readFile string, K int, index []int) (map[int]int){
+func CountFreq(readFile string, K int, freq map[int]int) {
 
    fmt.Println("\nProcessing: ", readFile)
    // Get all reads into a channel
@@ -41,14 +39,8 @@ func CountFreq(readFile string, K int, index []int) (map[int]int){
    runtime.GOMAXPROCS(numCores)
    var wg sync.WaitGroup
 
-   // Here is a map of kmers that need to be counted.  Only these kmers are counted.
-   freq := make(map[int]int)
-   for i := range(index){
-      freq[index[i]] = 0
-   }
-
    // Start a new counter that counts only kmers in freq.
-   c := Metagenome.NewKmerCounter(K, freq)
+   c := kmers.NewKmerCounter(K, freq)
 
    // Count kmers in different cores simultaneously.
    for i:=0; i<numCores; i++ {
@@ -63,8 +55,6 @@ func CountFreq(readFile string, K int, index []int) (map[int]int){
 
    // Finish counting
    wg.Wait()
-
-   return freq
 }
 
 func Read_index() ([]int){
@@ -76,18 +66,15 @@ func Read_index() ([]int){
    }
 
    defer csvfile.Close()
-
    reader := csv.NewReader(csvfile)
-
    reader.FieldsPerRecord = -1 
-
    rawCSVdata, err := reader.ReadAll()
 
    if err != nil {
       fmt.Println(err)
       os.Exit(1)
    }
- 
+    
    var index []int
    for _, each := range rawCSVdata {
       i, err := strconv.Atoi(each[0])
@@ -99,7 +86,7 @@ func Read_index() ([]int){
       //fmt.Println(i)
       index = append(index, i)
    }
-
+   
    return index
 }
 
@@ -127,7 +114,7 @@ func SaveToVector(index []int, freq map[int]int){
    rr.Flush()
 
    //save to file
-   for k:= range(index){
+   for k:= range (index){
       line:=make([]string, 2)
       line[0] = strconv.Itoa(index[k])
       line[1] = strconv.Itoa(freq[index[k]])
@@ -145,13 +132,17 @@ func main() {
    }
 
    start_time := time.Now()
-      
-   index := Read_index()
-      
+   
+   var index []int
+   index = Read_index()
+         
    K := 7
    freq := make(map[int]int)
-   freq = CountFreq(os.Args[2], K, index)
-   
+   for i := range(index){
+      freq[index[i]] = 0
+   }
+   CountFreq(os.Args[2], K, freq)
+ 
    SaveToVector(index, freq)
    
    end_time := time.Since(start_time)
