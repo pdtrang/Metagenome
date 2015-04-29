@@ -1,4 +1,6 @@
 # Metagenome
+Count k-mer in reads.
+
 Installation:
 go get github/pdtrang/Metagenome
 go get github/vtphan/kmers
