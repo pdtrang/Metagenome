@@ -1,5 +1,3 @@
-// example how to count k-mer frequencies in a set of reads, using multiple goroutines.
-
 package main
 
 import (
@@ -15,6 +13,10 @@ import (
    "fmt"
 )
 
+//os.Args[1]: folder contains reference genomes
+//os.Args[2]: kmer_list
+//os.Args[3]: K
+//os.Args[4]: result folder
 
 func CountFreq(readFile string, freq map[int]int, K int) {
 
@@ -133,26 +135,6 @@ func assignTocsv(Kmer_freq map[int][]int, index []int, freq map[int]int, result 
    error_check(returnError)
    rw.Flush()
 
-   /*csvfile, err := os.Open(GSMfile)
-   error_check(err)
-   defer csvfile.Close()
-   reader := csv.NewReader(csvfile)
-   _, err = reader.Read()
-
-   for {
-      line, err := reader.Read()
-      if err != nil {
-          break
-      } else {
-         head[0] = line[0]
-         kmer, _ := strconv.Atoi(line[0])
-         // fmt.Println(kmers.NumToKmer(kmer,14))
-         head[1] = strconv.Itoa(freq[kmer])
-         returnError := rw.Write(head)
-         error_check(returnError)
-      }
-   }*/
-   
    for k:= range Kmer_freq {
       head[0] = strconv.Itoa(k)
       idx[0] = strconv.Itoa(k)
@@ -165,13 +147,6 @@ func assignTocsv(Kmer_freq map[int][]int, index []int, freq map[int]int, result 
       returnError = rw_idx.Write(idx)
       error_check(returnError)
    }
-
-   /*for i := 0; i<len(index); i++ {
-      head[0] = strconv.Itoa(index[i])
-      head[1] = strconv.Itoa(freq[index[i]])
-      returnError := rw.Write(head)
-      error_check(returnError)
-   }*/
 
    rw.Flush()
    rw_idx.Flush()
